@@ -1,0 +1,89 @@
+
+//+------------------------------------------------------------------+
+//|                                                     Aragorn mt4  |
+//|                                                forexroboteasy.com |
+//|                                           Developed by Forex Robot Easy Team |
+//+------------------------------------------------------------------+
+
+// Input parameters
+extern double TakeProfit = 50;                 // Take Profit in pips
+extern double StopLoss = 30;                   // Stop Loss in pips
+extern int TradePeriod = 60;                   // Trading period in minutes
+
+//+------------------------------------------------------------------+
+//| Expert initialization function                                   |
+//+------------------------------------------------------------------+
+int OnInit()
+{
+    // Set stop levels
+    int slippage = MarketInfo(Symbol(), MODE_STOPLEVEL);
+    double stopLevel = MarketInfo(Symbol(), MODE_STOPLEVEL) * Point;
+
+    // Check if stop levels are acceptable
+    if (slippage <= StopLoss)
+    {
+        Print('Stop Loss is within acceptable limits. Slippage: ', slippage);
+    }
+    else
+    {
+        Print('Stop Loss is too close to the current price. Slippage: ', slippage);
+        return INIT_FAILED;
+    }
+
+    // Print trading parameters
+    Print('Take Profit: ', TakeProfit, ' pips');
+    Print('Stop Loss: ', StopLoss, ' pips');
+    Print('Trading Period: ', TradePeriod, ' minutes');
+
+    // Add your indicator system code here
+
+    return INIT_SUCCEEDED;
+}
+
+//+------------------------------------------------------------------+
+//| Expert deinitialization function                                 |
+//+------------------------------------------------------------------+
+void OnDeinit(const int reason)
+{
+    // Add any deinitialization code here
+}
+
+//+------------------------------------------------------------------+
+//| Expert tick function                                             |
+//+------------------------------------------------------------------+
+void OnTick()
+{
+    // Add your trading logic here
+
+    // Open a buy trade
+    double buyPrice = Ask;
+    double takeProfitPrice = buyPrice + TakeProfit * Point;
+    double stopLossPrice = buyPrice - StopLoss * Point;
+
+    int ticket = OrderSend(Symbol(), OP_BUY, 0.01, buyPrice, slippage, stopLossPrice, takeProfitPrice, 'Buy Order', 0, 0, Green);
+
+    if (ticket > 0)
+    {
+        Print('Buy order opened successfully. Ticket: ', ticket);
+    }
+    else
+    {
+        Print('Failed to open buy order. Error code: ', GetLastError());
+    }
+
+    // Open a sell trade
+    double sellPrice = Bid;
+    takeProfitPrice = sellPrice - TakeProfit * Point;
+    stopLossPrice = sellPrice + StopLoss * Point;
+
+    ticket = OrderSend(Symbol(), OP_SELL, 0.01, sellPrice, slippage, stopLossPrice, takeProfitPrice, 'Sell Order', 0, 0, Red);
+
+    if (ticket > 0)
+    {
+        Print('Sell order opened successfully. Ticket: ', ticket);
+    }
+    else
+    {
+        Print('Failed to open sell order. Error code: ', GetLastError());
+    }
+}
